@@ -1,6 +1,11 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
 import 'home_screen.dart';
+
+
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -12,7 +17,11 @@ class SignIn extends StatefulWidget {
 class _SignInState extends State<SignIn> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _obscureText = true;
+  bool _isLoading = false;
+
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -21,7 +30,73 @@ class _SignInState extends State<SignIn> {
     super.dispose();
   }
 
-  @override
+  bool validateEmptyFields(String email, String password) {
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorDialog("Ошибка", "Все поля должны быть заполнены");
+      return false;
+    }
+    return true;
+  }
+
+  bool validateEmail(String email) {
+    final RegExp emailRegExp = RegExp(r'^[a-z0-9]+@[a-z0-9]+\.[a-z]{2,}$');
+
+    if (!emailRegExp.hasMatch(email)) {
+      _showErrorDialog("Ошибка", "Не верный формат почты name@domen.ru");
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _authenticateUser(String email, String password) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final String? errorMessage = await _authService.signIn(email, password);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (errorMessage != null) {
+      _showErrorDialog("Ошибка входа", errorMessage);
+    } else {
+      _navigateToHome();
+    }
+  }
+
+  void _signIn() {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text.trim();
+  }
+
+  void _navigateToHome() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomeScreen()),
+    );
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          surfaceTintColor: Color.fromARGB(255, 231, 62, 62),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("ОК"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
