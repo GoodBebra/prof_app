@@ -31,6 +31,7 @@ class _SignInState extends State<SignIn> {
   }
 
   bool validateEmptyFields(String email, String password) {
+
     if (email.isEmpty || password.isEmpty) {
       _showErrorDialog("Ошибка", "Все поля должны быть заполнены");
       return false;
@@ -39,6 +40,7 @@ class _SignInState extends State<SignIn> {
   }
 
   bool validateEmail(String email) {
+    
     final RegExp emailRegExp = RegExp(r'^[a-z0-9]+@[a-z0-9]+\.[a-z]{2,}$');
 
     if (!emailRegExp.hasMatch(email)) {
@@ -66,16 +68,20 @@ class _SignInState extends State<SignIn> {
     }
   }
 
-  void _signIn() {
-    final String email = _emailController.text.trim();
-    final String password = _passwordController.text.trim();
-  }
-
   void _navigateToHome() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => HomeScreen()),
     );
+  }
+
+    void _signIn() {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    if (!validateEmail(email)) return;
+    if (!validateEmptyFields(email, password)) return;
+    _authenticateUser(email, password);
   }
 
   void _showErrorDialog(String title, String message) {
@@ -233,12 +239,7 @@ class _SignInState extends State<SignIn> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        },
+        onPressed: _signIn,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF48B2E7),
           foregroundColor: Colors.white,
